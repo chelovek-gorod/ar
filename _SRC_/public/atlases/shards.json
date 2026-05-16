@@ -1,0 +1,591 @@
+{
+  "frames": {
+    "shard_big_4": {
+      "frame": {
+        "x": 4,
+        "y": 4,
+        "w": 40,
+        "h": 46
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 46
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 46
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_big_4_tint": {
+      "frame": {
+        "x": 4,
+        "y": 58,
+        "w": 40,
+        "h": 46
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 46
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 46
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_big_1": {
+      "frame": {
+        "x": 4,
+        "y": 112,
+        "w": 40,
+        "h": 38
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 38
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 38
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_mid_3": {
+      "frame": {
+        "x": 4,
+        "y": 158,
+        "w": 26,
+        "h": 16
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 26,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 26,
+        "h": 16
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_mid_3_tint": {
+      "frame": {
+        "x": 38,
+        "y": 158,
+        "w": 26,
+        "h": 16
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 26,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 26,
+        "h": 16
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_big_1_tint": {
+      "frame": {
+        "x": 72,
+        "y": 4,
+        "w": 40,
+        "h": 38
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 38
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 38
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_small_4": {
+      "frame": {
+        "x": 52,
+        "y": 4,
+        "w": 12,
+        "h": 10
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 10
+      },
+      "sourceSize": {
+        "w": 12,
+        "h": 10
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_small_4_tint": {
+      "frame": {
+        "x": 52,
+        "y": 22,
+        "w": 12,
+        "h": 10
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 10
+      },
+      "sourceSize": {
+        "w": 12,
+        "h": 10
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_small_1": {
+      "frame": {
+        "x": 52,
+        "y": 40,
+        "w": 10,
+        "h": 12
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 10,
+        "h": 12
+      },
+      "sourceSize": {
+        "w": 10,
+        "h": 12
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_big_2": {
+      "frame": {
+        "x": 120,
+        "y": 4,
+        "w": 40,
+        "h": 36
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 36
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 36
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_small_2": {
+      "frame": {
+        "x": 168,
+        "y": 4,
+        "w": 14,
+        "h": 8
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 14,
+        "h": 8
+      },
+      "sourceSize": {
+        "w": 14,
+        "h": 8
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_small_2_tint": {
+      "frame": {
+        "x": 168,
+        "y": 20,
+        "w": 14,
+        "h": 8
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 14,
+        "h": 8
+      },
+      "sourceSize": {
+        "w": 14,
+        "h": 8
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_small_1_tint": {
+      "frame": {
+        "x": 168,
+        "y": 36,
+        "w": 10,
+        "h": 12
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 10,
+        "h": 12
+      },
+      "sourceSize": {
+        "w": 10,
+        "h": 12
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_big_2_tint": {
+      "frame": {
+        "x": 120,
+        "y": 48,
+        "w": 40,
+        "h": 36
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 36
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 36
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_big_3": {
+      "frame": {
+        "x": 72,
+        "y": 50,
+        "w": 36,
+        "h": 38
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 36,
+        "h": 38
+      },
+      "sourceSize": {
+        "w": 36,
+        "h": 38
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_small_3": {
+      "frame": {
+        "x": 52,
+        "y": 60,
+        "w": 10,
+        "h": 12
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 10,
+        "h": 12
+      },
+      "sourceSize": {
+        "w": 10,
+        "h": 12
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_small_3_tint": {
+      "frame": {
+        "x": 52,
+        "y": 80,
+        "w": 10,
+        "h": 12
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 10,
+        "h": 12
+      },
+      "sourceSize": {
+        "w": 10,
+        "h": 12
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_big_3_tint": {
+      "frame": {
+        "x": 52,
+        "y": 100,
+        "w": 36,
+        "h": 38
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 36,
+        "h": 38
+      },
+      "sourceSize": {
+        "w": 36,
+        "h": 38
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_mid_4": {
+      "frame": {
+        "x": 72,
+        "y": 146,
+        "w": 26,
+        "h": 28
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 26,
+        "h": 28
+      },
+      "sourceSize": {
+        "w": 26,
+        "h": 28
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_mid_4_tint": {
+      "frame": {
+        "x": 96,
+        "y": 96,
+        "w": 26,
+        "h": 28
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 26,
+        "h": 28
+      },
+      "sourceSize": {
+        "w": 26,
+        "h": 28
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_mid_1": {
+      "frame": {
+        "x": 106,
+        "y": 132,
+        "w": 22,
+        "h": 28
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 22,
+        "h": 28
+      },
+      "sourceSize": {
+        "w": 22,
+        "h": 28
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_mid_1_tint": {
+      "frame": {
+        "x": 130,
+        "y": 92,
+        "w": 22,
+        "h": 28
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 22,
+        "h": 28
+      },
+      "sourceSize": {
+        "w": 22,
+        "h": 28
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_mid_2": {
+      "frame": {
+        "x": 136,
+        "y": 128,
+        "w": 28,
+        "h": 14
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 28,
+        "h": 14
+      },
+      "sourceSize": {
+        "w": 28,
+        "h": 14
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "shard_mid_2_tint": {
+      "frame": {
+        "x": 136,
+        "y": 150,
+        "w": 28,
+        "h": 14
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 28,
+        "h": 14
+      },
+      "sourceSize": {
+        "w": 28,
+        "h": 14
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    }
+  },
+  "meta": {
+    "app": "http://free-tex-packer.com",
+    "version": "0.6.7",
+    "image": "shards.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 186,
+      "h": 178
+    },
+    "scale": 1
+  }
+}
