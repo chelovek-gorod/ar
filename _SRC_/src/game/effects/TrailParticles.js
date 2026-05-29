@@ -31,21 +31,6 @@ const TRAIL_CONFIG = {
 
     // ---------- Область рождения частиц ----------
     SPAWN_RADIUS: 24,            // радиус круга вокруг центра мяча, где появляются частицы
-
-    // ---------- Цвет ядра ----------
-    CORE_WHITENESS: 0.85         // 0 = полностью цвет tint, 1 = чисто белый
-}
-
-// ----------------------------------------------------------------------
-// Смешение двух цветов (линейная интерполяция по RGB)
-// ----------------------------------------------------------------------
-function lerpColor(c1, c2, t) {
-    const r1 = (c1 >> 16) & 0xff, g1 = (c1 >> 8) & 0xff, b1 = c1 & 0xff
-    const r2 = (c2 >> 16) & 0xff, g2 = (c2 >> 8) & 0xff, b2 = c2 & 0xff
-    const r = Math.round(r1 + (r2 - r1) * t)
-    const g = Math.round(g1 + (g2 - g1) * t)
-    const b = Math.round(b1 + (b2 - b1) * t)
-    return (r << 16) | (g << 8) | b
 }
 
 // ----------------------------------------------------------------------
@@ -136,10 +121,11 @@ export default class TrailParticles {
      * @param {number} y
      * @param {number} dx - направление мяча (единичный вектор)
      * @param {number} dy
-     * @param {number} tint - цвет свечения
+     * @param {number} tintIn - цвет
+     * @param {number} tintOut - цвет свечения
      * @param {number} count - сколько искр создать в этом кадре
      */
-    emit(x, y, dx, dy, tint, count) {
+    emit(x, y, dx, dy, tintIn, tintOut, count) {
         // Направление «назад» (против движения мяча)
         const baseAngle = Math.atan2(-dy, -dx)
 
@@ -192,7 +178,7 @@ export default class TrailParticles {
             glow.scaleX = TRAIL_CONFIG.GLOW_SCALE
             glow.scaleY = TRAIL_CONFIG.GLOW_SCALE
             glow.alpha = TRAIL_CONFIG.GLOW_ALPHA_START
-            glow.tint = tint
+            glow.tint = tintOut
             glow.data.vx = vx
             glow.data.vy = vy
 
@@ -203,7 +189,7 @@ export default class TrailParticles {
             core.scaleX = TRAIL_CONFIG.CORE_SCALE
             core.scaleY = TRAIL_CONFIG.CORE_SCALE
             core.alpha = TRAIL_CONFIG.CORE_ALPHA_START
-            core.tint = lerpColor(tint, 0xffffff, TRAIL_CONFIG.CORE_WHITENESS)
+            core.tint = tintIn
             core.data.vx = vx
             core.data.vy = vy
 

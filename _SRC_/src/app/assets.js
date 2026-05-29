@@ -24,6 +24,8 @@ export const images = {
     bg_main: 'bg_main.webp',
 
     particle: 'particle.png',
+    spark: 'spark.png',
+    bullet: 'bullet.png',
 
     bg_1: 'bg_1.webp',
     bg_2: 'bg_2.webp',
@@ -50,6 +52,7 @@ export const atlases = {
     explosion: 'explosion.json',
     bricks: 'bricks.json',
     shards: 'shards.json',
+    bonuses: 'bonuses.json',
 }
 export const sounds = {
     se_hover: 'se_hover.mp3',

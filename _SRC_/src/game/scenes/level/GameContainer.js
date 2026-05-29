@@ -1,13 +1,20 @@
 import { Container, Graphics, Sprite, TilingSprite } from 'pixi.js'
 import { atlases, images } from '../../../app/assets'
 import { EventHub, events } from '../../../app/events'
-import { appPointer, tickerAdd, tickerRemove } from '../../../app/application'
+import { kill, tickerAdd, tickerRemove } from '../../../app/application'
 import { BORDER_HALF_SIZE, BRICK_W, BRICK_H, BRICK_TYPE, BORDER_MIN_OFFSET, BRICK_CHAR_TYPE, BALL_RADIUS } from './constants'
 import Brick from './Brick'
 import Paddle from './Paddle'
-import Ball from './Ball'
+import Ball, {START_SPEED} from './Ball'
 import ShardsParticles from '../../effects/ShardsParticles'
 import TrailParticles from '../../effects/TrailParticles'
+import Gun from './Gun'
+import Bonus, { BONUS_TYPE } from './Bonus'
+import BonusFlyUp from './BonusFlyUp'
+import { addPlayerBall, addPlayerBonusCountPowers, addPlayerPower, playerPower, removePlayerBall } from '../../state'
+import SparksParticles from '../../effects/SparksParticles'
+import GunBullet from './GunBullet'
+import Explosion from './Explosion'
 
 export default class GameContainer extends Container {
     constructor(map_lines) {
@@ -17,19 +24,22 @@ export default class GameContainer extends Container {
 
         this.border = new Container()
         this.borderBottom = new Container()
-        this.borderBottomHp = 4
-        this.borderBottom.visible = true
+        this.borderBottomHp = 0
+        this.borderBottom.visible = false
 
         this.green = null
+        this.blocksAliveCount = 0
 
         const borderSize = BORDER_HALF_SIZE * 2
-        const blocksWidth = Math.round( map_lines[0].length * 0.25 * BRICK_W)
+        const blocksWidth = Math.round( map_lines[0].length * 0.25 * BRICK_W )
         const lineWidth = blocksWidth + (BORDER_MIN_OFFSET * 2)
         const pcs = Math.ceil( lineWidth / borderSize )
         const borderInnerWidth = pcs * borderSize
         const offset = Math.round( (borderInnerWidth - blocksWidth) * 0.5 ) + borderSize
         const centerX = Math.round( offset + borderInnerWidth * 0.5 )
         const bottomY = offset + borderInnerWidth
+        this.bonusMaxY = borderInnerWidth + offset
+        this.borderInnerWidth = borderInnerWidth
 
         this.fillBg(borderInnerWidth, borderSize)
 
@@ -39,38 +49,61 @@ export default class GameContainer extends Container {
 
         this.fillBorder(borderSize, pcs)
 
+        this.ballTrail.resize(this.width, this.height)
+
         this.bricks = new Container()
         this.addChild(this.bricks)
         this.fillBricks(map_lines, offset)
 
-        this.paddle = new Paddle(5, centerX, bottomY - 72, borderInnerWidth)
-        this.addChild(this.paddle)
-        
-        this.ball = new Ball(
-            centerX, this.paddle.y - BALL_RADIUS,
-            borderInnerWidth,
-            this.bricks, this.paddle,
-            this.ballTrail.emit.bind(this.ballTrail),
-            this.ballCollideBorderBottom.bind(this),
-            this.borderBottom.visible
-        )
-        this.addChild(this.ball)
+        this.explosions = new Container()
+        this.addChild(this.explosions)
+        this.explosionsPoints = []
 
-        this.gunLeft = new Sprite(images.gun)
-        this.gunLeft.anchor.set(0.5)
-        this.gunLeft.position.set(borderSize + 32, bottomY + 4)
+        this.paddle = new Paddle(3, centerX, bottomY - 72, borderInnerWidth)
+        this.addChild(this.paddle)
+
+        this.bullets = new Container()
+        this.addChild(this.bullets)
+
+        this.gunLeft = new Gun(
+            borderSize + 32, bottomY + 6, 0,
+            true, this.addBullet.bind(this), this.bricks
+        )
         this.addChild(this.gunLeft)
 
-        this.gunRight = new Sprite(images.gun)
-        this.gunRight.anchor.set(0.5)
-        this.gunRight.position.set(borderInnerWidth + borderSize - 32, bottomY + 4)
+        this.gunRight = new Gun(
+            borderInnerWidth + borderSize - 32, bottomY + 6, 0,
+            false, this.addBullet.bind(this), this.bricks
+        )
         this.addChild(this.gunRight)
 
         this.shards = new ShardsParticles(this.width, this.height)
         this.addChild(this.shards.container)
-        this.ballTrail.resize(this.width, this.height)
 
-        tickerAdd(this)
+        this.sparks = new SparksParticles(this.width, this.height)
+        this.addChild(this.sparks.container)
+
+        this.bonuses = new Container()
+        this.addChild(this.bonuses)
+
+        this.balls = new Container()
+        this.addChild(this.balls)
+
+        removePlayerBall()
+        this.balls.addChild(
+            new Ball(
+                centerX, this.paddle.y - BALL_RADIUS,
+                borderInnerWidth,
+                this.bricks, this.paddle,
+                this.ballTrail.emit.bind(this.ballTrail),
+                this.sparks.addSparks.bind(this.sparks),
+                this.ballCollideBorderBottom.bind(this),
+                this.borderBottom.visible, null
+            )
+        )
+
+        EventHub.on(events.collectBonus, this.collectBonus, this)
+        EventHub.on(events.dropLoseBonus, this.dropLoseBonus, this)
     }
 
     fillBg(borderInnerWidth, borderSize) {
@@ -145,7 +178,7 @@ export default class GameContainer extends Container {
             const x = i_x * borderSize + BORDER_HALF_SIZE
             const top = new Sprite(images.border_side)
             top.anchor.set(0.5)
-            top.rotation = Math.PI * 0.5
+            top.rotation = Math.PI * 1.5
             top.position.set(x, farPoint)
             this.borderBottom.addChild(top)
         }
@@ -176,6 +209,7 @@ export default class GameContainer extends Container {
                         this.setGreen.bind(this), this.getGreen.bind(this)
                     )
                     this.bricks.addChild( brick )
+                    if (type !== BRICK_TYPE.stone) this.blocksAliveCount++
                 }
             }
         }
@@ -188,31 +222,205 @@ export default class GameContainer extends Container {
         return this.green
     }
 
-    ballCollideBorderBottom() {
+    addBullet(x, y, angle) {
+        this.bullets.addChild(
+            new GunBullet(
+                x, y, angle, this.borderInnerWidth, this.bricks, this.sparks.addSparks.bind(this.sparks)
+            )
+        )
+    }
+
+    ballCollideBorderBottom(ball) {
         if (this.borderBottomHp > 0) {
             this.borderBottomHp--
             if (this.borderBottomHp === 0) {
-                this.ball.setBottomBorder(false)
+                for(let i = 0; i < this.balls.children.length; i++) {
+                    this.balls.children[i].setBottomBorder(false)
+                }
                 this.borderBottom.visible = false
             }
         } else {
-            alert('game over')
-            this.ball.kill()
+            ball.isAlive = false
+            tickerRemove(ball)
+            kill(ball)
+            
+            let isAliveBall = false
+            for(let i = 0; i < this.balls.children.length; i++) {
+                if (this.balls.children[i].isAlive) isAliveBall = true
+            }
+            if (!isAliveBall) alert('GAME OVER')
         }
     }
 
     destroyBrick(brick) {
+        // сохраняем данные которые могут пригодиться
+        const brickType = brick.type
+        const brickX = brick.x
+        const brickY = brick.y
+        const bonusType = (brickType === BRICK_TYPE.gem) ? brick.bonusType : null
+
+        // уничтожаем блок
+        tickerRemove(brick)
         this.bricks.removeChild(brick)
         this.shards.addShards(brick.x, brick.y, brick.shardsTint, brick.alpha)
         brick.destroy({children: true})
+
+        // добавляем эффект
+        if (brickType === BRICK_TYPE.sun) this.dropBonus(brickX, brickY, BONUS_TYPE.ADD_COIN)
+        else if (brickType === BRICK_TYPE.fire) this.addExplosion(brickX, brickY)
+        else if (brickType === BRICK_TYPE.gem) this.dropBonus(brickX, brickY, bonusType)
+        
+        // считаем остатки
+        this.blocksAliveCount--
+        if (this.blocksAliveCount === 0) alert('WIN!!!')
     }
 
-    tick(deltaMs) {
-        const point = this.toLocal(appPointer.global)
-        this.paddle.setPointerX( point.x )
+    addExplosion(x, y) {
+        this.explosions.addChild( new Explosion(x, y) )
+        this.explosionsPoints.push({x, y})
+        tickerAdd(this)
+    }
+
+    setExplosionHit(x, y) {
+        const offsetX = BRICK_W * 1.5
+        const offsetY = BRICK_H * 1.5
+        for (let i = this.bricks.children.length - 1; i >= 0; i--) {
+            try {
+                const brick = this.bricks.children[i]
+                const dx = Math.abs(brick.x - x)
+                const dy = Math.abs(brick.y - y)
+                if (dx <= offsetX && dy <= offsetY) {
+                    this.sparks.addSparks({x: brick.x, y: brick.y, count: 18, isGravity: true})
+                    brick.getHit(2)
+                }
+            } catch {}
+        }
+    }
+
+    dropLoseBonus(data) {
+        const randomInt = Math.ceil(Math.random() * 3)
+        switch(randomInt) {
+            case 1 : this.dropBonus(data.x, data.y, BONUS_TYPE.LOSE_CONTROL); break;
+            case 2 : this.dropBonus(data.x, data.y, BONUS_TYPE.LOSE_SIZE); break;
+            case 3 : this.dropBonus(data.x, data.y, BONUS_TYPE.LOSE_TIME); break;
+        }
+    }
+
+    dropBonus(x, y, type) {
+        let bonusType = type
+        if (type === BONUS_TYPE.ADD_POWER
+        && this.balls.children.length > 0
+        && this.balls.children[0].power === 5) {
+            bonusType = BONUS_TYPE.ADD_BALL
+        } else if (type === BONUS_TYPE.ADD_SIZE && this.paddle.size === 5) {
+            bonusType = BONUS_TYPE.ADD_BALL
+        } else if (type === BONUS_TYPE.ADD_TIME
+        && this.balls.children.length > 0
+        && this.balls.children[0].speed < START_SPEED * 1.5) {
+            bonusType = BONUS_TYPE.ADD_BALL
+        }
+        this.bonuses.addChild( new Bonus(bonusType, x, y, this.bonusMaxY, this.paddle) )
+    }
+
+    collectBonus({type, x, y}) {
+        switch(type) {
+            // ADD
+            case BONUS_TYPE.ADD_BALL :
+                addPlayerBall()
+            break
+            case BONUS_TYPE.ADD_BALLS :
+                let x = this.paddle.x
+                let y = this.paddle.y - BALL_RADIUS
+                for(let i = 0; i < this.balls.children.length; i++) {
+                    if (this.balls.children[i].y < y) {
+                        x = this.balls.children[i].x
+                        y = this.balls.children[i].y
+                    }
+                }
+
+                // left
+                this.balls.addChild(
+                    new Ball(
+                        x, y, this.borderInnerWidth,
+                        this.bricks, this.paddle,
+                        this.ballTrail.emit.bind(this.ballTrail),
+                        this.sparks.addSparks.bind(this.sparks),
+                        this.ballCollideBorderBottom.bind(this),
+                        this.borderBottom.visible, Math.PI * -0.7
+                    )
+                )
+
+                // right
+                this.balls.addChild(
+                    new Ball(
+                        x, y, this.borderInnerWidth,
+                        this.bricks, this.paddle,
+                        this.ballTrail.emit.bind(this.ballTrail),
+                        this.sparks.addSparks.bind(this.sparks),
+                        this.ballCollideBorderBottom.bind(this),
+                        this.borderBottom.visible, Math.PI * -0.3
+                    )
+                )
+            break
+            case BONUS_TYPE.ADD_GUNS :
+                this.gunLeft.addShuts()
+                this.gunRight.addShuts()
+            break
+            case BONUS_TYPE.ADD_POWER :
+                if (playerPower === 5) {
+                    addPlayerBonusCountPowers()
+                } else {
+                    addPlayerPower()
+                    for(let i = 0; i < this.balls.children.length; i++) {
+                        this.balls.children[i].addPower()
+                    }
+                }
+            break
+            case BONUS_TYPE.ADD_SIZE :
+                this.paddle.changeSize(1)
+            break
+            case BONUS_TYPE.ADD_TIME :
+                for(let i = 0; i < this.balls.children.length; i++) {
+                    this.balls.children[i].resetSpeed()
+                }
+            break
+            case BONUS_TYPE.ADD_WALL :
+                this.borderBottomHp++
+                this.borderBottom.visible = true
+                for(let i = 0; i < this.balls.children.length; i++) {
+                    this.balls.children[i].setBottomBorder(true)
+                }
+            break
+
+            // LOSE
+            case BONUS_TYPE.LOSE_CONTROL :
+                this.paddle.setLoseControl()
+            break
+            case BONUS_TYPE.LOSE_SIZE :
+                this.paddle.changeSize(-1)
+            break
+            case BONUS_TYPE.LOSE_TIME :
+                for(let i = 0; i < this.balls.children.length; i++) {
+                    this.balls.children[i].addSpeed()
+                }
+            break
+        }
+        this.bonuses.addChild( new BonusFlyUp(type, x, y) )
+    }
+
+    tick() {
+        if (this.explosionsPoints.length) {
+            const {x, y} = this.explosionsPoints.pop()
+            this.setExplosionHit(x, y)
+        } else {
+            tickerRemove(this)
+        }
     }
 
     kill() {
-        
+        this.explosionsPoints = []
+        tickerRemove(this)
+        EventHub.off(events.collectBonus, this.collectBonus, this)
+        EventHub.off(events.dropLoseBonus, this.dropLoseBonus, this)
     }
 }

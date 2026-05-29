@@ -33,6 +33,8 @@ export default class LevelScene extends Container {
         this.bg = null
         this.gameContainer = null
 
+        this.isSceneReady = false
+
         getLevelData( this.setLevelData.bind(this) )
 
         this.ballSpeedText = new Text({text: 1, style: styles.loading})
@@ -85,9 +87,16 @@ export default class LevelScene extends Container {
         this.addChildAt(this.gameContainer, 0)
 
         this.bg = new BackgroundImage(images["bg_" + levelData.bg_index], null, false)
+        this.bg.eventMode = 'static'
+        this.bg.on('pointermove', this.onpointerMove, this)
+        this.bg.on('pointerdown', this.onpointerDown, this)
         this.addChildAt(this.bg, 0)
 
         this.screenResize( getAppScreen() )
+    }
+
+    launchScene() {
+        this.isSceneReady = true
     }
 
     screenResize(screenData) {
@@ -128,14 +137,31 @@ export default class LevelScene extends Container {
         this.currentLanguage = lang
     }
 
+    onpointerMove({global}) {
+        if (!this.isSceneReady || !this.gameContainer) return
+
+        const point = this.gameContainer.toLocal(global)
+        this.gameContainer.paddle.setPointerX( point.x )
+    }
+
+    onpointerDown() {
+        if (!this.isSceneReady || !this.gameContainer || !this.gameContainer.balls.children.length) return
+        this.gameContainer.balls.children[0].start()
+    }
+
     tick(deltaMs) {
-        this.ballSpeedText.text = this.gameContainer.ball.speed.toFixed(2)
+        //this.ballSpeedText.text = this.gameContainer.ball.speed.toFixed(2)
     }
 
     kill() {
         gameplayStopSDK()
         
         tickerRemove(this)
+
+        if (this.bg) {
+            this.bg.off('pointermove', this.onpointerMove, this)
+            this.bg.off('pointerdown', this.onpointerDown, this)
+        }
 
         if (this.handlerKeyboard) {
             EventHub.off( events.resumeGameplay, this.resumeGameplay, this )

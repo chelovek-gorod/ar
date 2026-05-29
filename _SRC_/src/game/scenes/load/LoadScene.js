@@ -141,7 +141,7 @@ export default class LoadScene extends Container {
         const title_h = 1024
         const scale_x = this.screenData.width / title_w
         const scale_y = this.screenData.height / title_h
-        this.title.scale.set( Math.min(1, scale_x * 0.5, scale_y * 0.5) )
+        this.title.scale.set( Math.min(1, scale_x * 0.9, scale_y * 0.9) )
         this.title.position.set(0, -this.screenData.height * 0.125)
     }
 

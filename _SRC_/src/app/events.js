@@ -14,26 +14,8 @@ export const events = createEnum([
 
     'updateLanguage',
 
-    'shakeScreen',
-    'addSmoke',
-    'addExplosion',
-    'addSparks',
-    'addStones',
-
-    'addScore',
-    'resetCombo',
-    'slowDown',
-    'removePlyerSave',
-    'getNextLevel',
-
-    'pauseGameplay',
-    'resumeGameplay',
-
-    'launchFirework',
-
-    'updateTopResults',
-    'getTopResults',
-    'freeSpinPopupClosed',
+    'dropLoseBonus',
+    'collectBonus',
 ])
 
 export function screenResize( data ) {
@@ -55,10 +37,6 @@ export function startScene( sceneName ) {
 
 export function updateLanguage( currentLanguageCode ) {
     EventHub.emit( events.updateLanguage, currentLanguageCode )
-}
-
-export function shakeScreen( data ) {
-    EventHub.emit( events.shakeScreen, data )
 }
 
 export function addSmoke( data ) {
@@ -110,4 +88,11 @@ export function launchFirework(point) {
 
 export function freeSpinPopupClosed() {
     EventHub.emit( events.freeSpinPopupClosed )
+}
+
+export function dropLoseBonus( data ) {
+    EventHub.emit( events.dropLoseBonus, data )
+}
+export function collectBonus( data ) {
+    EventHub.emit( events.collectBonus, data )
 }

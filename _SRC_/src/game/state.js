@@ -29,7 +29,61 @@ export function getLevelData(callback) {
     }
 }
 
-export const playerScore = 0
+export let playerScore = 0
+export let playerCoins = 0
+export let playerBalls = 3
+export let playerPower = 1
+export let playerBonusCountPowers = 0
+export let playerBonusCountGuns = 0
+export let playerBonusCountSize = 0
+export let playerBonusCountWall = 0
+
+export function addPlayerScore(count) {
+    playerScore += count
+}
+
+export function addPlayerCoins(count) {
+    playerCoins += count
+}
+export function removePlayerCoins(count) {
+    playerCoins -= count
+}
+
+export function addPlayerBall() {
+    playerBalls++
+}
+export function removePlayerBall() {
+    playerBalls--
+}
+
+export function addPlayerPower() {
+    playerPower = Math.min(5, playerPower + 1)
+}
+export function resetPlayerPower() {
+    playerPower = 1
+}
+
+export function addPlayerBonusCountPowers() {
+    playerBonusCountPowers++
+}
+export function removePlayerBonusCountPowers() {
+    playerBonusCountPowers--
+}
+
+export function addPlayerBonusCountGuns() {
+    playerBonusCountGuns++
+}
+export function removePlayerBonusCountGuns() {
+    playerBonusCountGuns--
+}
+
+export function addPlayerBonusCountWalls() {
+    playerBonusCountWalls++
+}
+export function removePlayerBonusCountWalls() {
+    playerBonusCountWalls--
+}
+
 
 export function getStateData() {
     const gameState =  {

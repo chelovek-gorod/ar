@@ -1,7 +1,12 @@
 import { AnimatedSprite, Container, Sprite } from "pixi.js";
+import { tickerAdd } from "../../../app/application";
 import { atlases } from "../../../app/assets";
+import { dropLoseBonus } from "../../../app/events";
 import { getDarkColor } from "../../../utils/functions";
+import { BONUS_COLORS } from "./Bonus";
 import { BALL_RADIUS, BRICK_H, BRICK_TYPE, BRICK_W } from "./constants";
+
+const SCULL_TIME = 1200 // switch eyes tint and drop lose bonus
 
 // 0 - no; 1 - left; 2 - right; 3 - both sides
 const grassPoints = [0, 1, 3, 0, 2]
@@ -26,12 +31,12 @@ function getGrassPoints() {
 --потеря контроля на 5 касаний платформы края (платформа выбирает лево или право и ездит туда/сюда)
 */
 
-const gemColors = [0x00ff00, 0xffff00, 0x0000ff, 0xff0000]
-let gemIndex = Math.floor( Math.random() * gemColors.length )
-function getGemColor() {
+const gemTypesColors = Object.entries(BONUS_COLORS)
+let gemIndex = Math.floor( Math.random() * gemTypesColors.length )
+function getGemTypeAndColor() {
     gemIndex++
-    if (gemIndex === gemColors.length) gemIndex = 0
-    return gemColors[gemIndex]
+    if (gemIndex === gemTypesColors.length) gemIndex = 0
+    return {bonus: gemTypesColors[gemIndex][0], color: gemTypesColors[gemIndex][1]}
 }
 
 export default class Brick extends Container {
@@ -113,7 +118,9 @@ export default class Brick extends Container {
             case BRICK_TYPE.gem:
                 this.shardsTint = 0x9c1ebb
                 this.gem = new AnimatedSprite(atlases.bricks.animations.gem)
-                this.gem.tint = getGemColor()
+                const {bonus, color} = getGemTypeAndColor()
+                this.bonusType = bonus
+                this.gem.tint = color
                 this.gem.anchor.set(0.5)
                 this.gem.animationSpeed = 0.5
                 this.gem.gotoAndPlay( Math.floor( Math.random() * 15 ) )
@@ -128,9 +135,12 @@ export default class Brick extends Container {
 
                 this.scullEyes = new Sprite(atlases.bricks.textures.scull_eyes)
                 this.scullEyes.blendMode = 'add'
-                this.scullEyes.tint = 0xff0000
+                this.scullEyes.tint = 0xffffff
                 this.scullEyes.anchor.set(0.5)
                 this.addChild(this.scullEyes)
+
+                this.dropStepTimeout = SCULL_TIME
+                tickerAdd(this)
             break;
 
             case BRICK_TYPE.fire:
@@ -208,13 +218,7 @@ export default class Brick extends Container {
     getHit(power) {
         this.hp -= power
 
-        if (this.type === BRICK_TYPE.sun) console.log('add coin')
-
-        else if (this.type === BRICK_TYPE.gem) console.log('add bonus')
-
-        else if (this.type === BRICK_TYPE.fire) console.log('add explosion')
-
-        else if (this.type === BRICK_TYPE.green) {
+        if (this.type === BRICK_TYPE.green) {
             const otherGreen = this.getGreen()
             if (otherGreen === null) {
                 this.setGreen(this)
@@ -260,6 +264,32 @@ export default class Brick extends Container {
             this.hit_2.texture = atlases.bricks.textures[this.hp < 4 ? "hit_on" : "hit_off"]
             this.hit_3.texture = atlases.bricks.textures[this.hp < 3 ? "hit_on" : "hit_off"]
             this.hit_4.texture = atlases.bricks.textures[this.hp < 2 ? "hit_on" : "hit_off"]
+        }
+    }
+
+    tick(deltaMs) {
+        this.dropStepTimeout -= deltaMs
+        if (this.dropStepTimeout > 0) return
+
+        this.dropStepTimeout += SCULL_TIME
+        switch(this.scullEyes.tint) {
+            case 0xffffff :
+                this.scullEyes.tint = 0xffff77
+            break
+            case 0xffff77 :
+                this.scullEyes.tint = 0xffff00
+            break
+            case 0xffff00 :
+                this.scullEyes.tint = 0xff7700
+            break
+            case 0xff7700 :
+                this.scullEyes.tint = 0xff0000
+            break
+            case 0xff0000 :
+                this.scullEyes.tint = 0xffffff
+                this.scullEyes.blandMode = 'normal'
+                dropLoseBonus({x: this.x, y: this.y})
+            break
         }
     }
 }

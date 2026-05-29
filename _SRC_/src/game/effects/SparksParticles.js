@@ -1,8 +1,7 @@
 import { Particle, ParticleContainer } from "pixi.js"
 import { tickerAdd, tickerRemove } from "../../app/application"
-import { atlases } from "../../app/assets"
+import { images, atlases } from "../../app/assets"
 import { EventHub, events } from "../../app/events"
-import { timeScale } from "../state"
 import { NOISE_BUFFER, NOISE_BUFFER_SIZE, NOISE_MASK, _2PI } from "./constants"
 
 const SMALL_SCALE_MIN = 0.2
@@ -14,6 +13,10 @@ const BIG_COUNT_RATIO = 0.25
 
 const SPREAD = 30
 const SPREAD_2 = SPREAD * 2
+
+const GRAVITY_MIN = 0.003
+const GRAVITY_MAX = 0.006
+const GRAVITY_MID = GRAVITY_MAX - GRAVITY_MIN
 
 const SPARK_SIZE = 28
 
@@ -27,7 +30,7 @@ function getScale(isBig) {
 function createSpark( isBig = false ) {
     const scale = getScale(isBig)
     const spark = new Particle({
-        texture: atlases.gameplay.textures.spark,
+        texture: images.spark,
         x: 0,
         y: 0,
         anchorX: 0.5,
@@ -45,8 +48,7 @@ function createSpark( isBig = false ) {
 }
 
 export default class SparksParticles {
-    constructor(scrollSpeedMs) {
-        this.scrollSpeed = scrollSpeedMs * 0.5
+    constructor(width, height) {
         this.container = new ParticleContainer({
             dynamicProperties: {
                 position: true,
@@ -71,22 +73,23 @@ export default class SparksParticles {
 
         // Границы удаления (будут установлены через resize)
         this.minX = -1000
-        this.maxX = 1000
+        this.maxX = 2000
         this.minY = -1000
-        this.maxY = 1000
+        this.maxY = 2000
+        this.resize(width, height)
 
         EventHub.on( events.addSparks, this.addSparks, this )
     }
 
     resize(width, height) {
         // Экран центрирован, координаты частиц относительно центра
-        this.minX = (-width - SPARK_SIZE) * 0.5
-        this.maxX = (width + SPARK_SIZE) * 0.5
-        this.minY = (-height - SPARK_SIZE) * 0.5
-        this.maxY = (height + SPARK_SIZE) * 0.5
+        this.minX = -width * 0.5
+        this.maxX = width * 1.5
+        this.minY = -height * 0.5
+        this.maxY = height * 1.5
     }
 
-    // data = {x, y, isExplosion = false, count = 1}
+    // data = {x, y, count = 1, isGravity = true}
     addSparks(data) { 
         const countBig = Math.floor(data.count * BIG_COUNT_RATIO)
         const countSmall = data.count - countBig
@@ -95,28 +98,30 @@ export default class SparksParticles {
             const spark = this.poolBig.length ? this.poolBig.pop() : createSpark(true)
             spark.x = data.x - SPREAD + Math.random() * SPREAD_2
             spark.y = data.y - SPREAD + Math.random() * SPREAD_2
-            this.setupSpark(spark, data.isExplosion)
+            this.setupSpark(spark, data.isGravity)
         }
         for (let i = 0; i < countSmall; i++) {
             const spark = this.poolSmall.length ? this.poolSmall.pop() : createSpark(false)
             spark.x = data.x - SPREAD + Math.random() * SPREAD_2
             spark.y = data.y - SPREAD + Math.random() * SPREAD_2
-            this.setupSpark(spark, data.isExplosion)
+            this.setupSpark(spark, data.isGravity)
         }
 
         if (this.sparks.length) tickerAdd(this)
     }
 
-    setupSpark(spark, isExplosion) {
-        const angle = isExplosion ? Math.random() * _2PI : Math.PI - 0.2 + Math.random() * 0.4
+    setupSpark(spark, isGravity) {
+        const angle = isGravity
+            ? Math.PI * -1.25 + Math.random() * (Math.PI * 1.5)
+            : Math.random() * _2PI
         const data = spark.data
-        data.gravity = isExplosion ? 0.0006 + Math.random() * 0.0006 : 0
+        data.gravity = isGravity ? GRAVITY_MIN + Math.random() * GRAVITY_MID : 0
         data.dx = Math.cos(angle)
         data.dy = Math.sin(angle)
-        data.alphaDecay = 0.0003
-        data.deceleration = 0.99
-        data.speed = isExplosion ? 0.3 + Math.random() * 0.3 : 0.12 + Math.random() * 0.12
-        data.turnSpeed = isExplosion ? 0 : 0.06
+        data.alphaDecay = 0.0006
+        data.deceleration = 0.96
+        data.speed = isGravity ? 0.36 + Math.random() * 0.36 : 0.12 + Math.random() * 0.12
+        data.turnSpeed = 0.036
 
         spark.rotation = Math.random() * _2PI
         spark.alpha = 1
@@ -126,15 +131,14 @@ export default class SparksParticles {
     }
 
     tick(deltaMs) {
-        const scaledDeltaMs = deltaMs * timeScale
         const sparks = this.sparks
         for (let i = sparks.length - 1; i >= 0; i--) {
             const spark = sparks[i]
             const data = spark.data
-
-            spark.x += (data.dx * data.speed - this.scrollSpeed) * scaledDeltaMs
-            spark.y += data.dy * data.speed * scaledDeltaMs
-            if (data.gravity) data.dy += data.gravity * scaledDeltaMs
+            const speed = data.speed * deltaMs
+            spark.x += data.dx * speed
+            spark.y += data.dy * speed
+            if (data.gravity) data.dy += data.gravity * deltaMs
 
             data.speed *= data.deceleration
             if (data.speed < data.turnSpeed) {
@@ -151,7 +155,7 @@ export default class SparksParticles {
                 //data.dy += Math.random() - 0.5
             }
 
-            spark.alpha = Math.max(0, spark.alpha - data.alphaDecay * scaledDeltaMs)
+            spark.alpha = Math.max(0, spark.alpha - data.alphaDecay * deltaMs)
 
             if (spark.alpha <= 0 || data.speed <= 0 ||
                 spark.x < this.minX || spark.x > this.maxX ||

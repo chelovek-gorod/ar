@@ -4,7 +4,7 @@ import { changeFocus, EventHub, events, screenResize } from './events'
 // app settings
 let isAutoFoolScreen = false
 
-let isGlobalAppCursor = true // NEED DEPRECIATED
+let isGlobalAppCursor = false // NEED DEPRECIATED
 export let appPointer = null
 
 const isCursorHidden = false // use custom image

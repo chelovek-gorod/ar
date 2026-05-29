@@ -2,56 +2,47 @@ import { Container, Sprite } from "pixi.js";
 import { tickerAdd, tickerRemove } from "../../../app/application";
 import { images } from "../../../app/assets";
 import { getLinesIntersectionPoint, moveSprite } from "../../../utils/functions";
+import { playerPower } from "../../state";
 import { BALL_RADIUS, BORDER_HALF_SIZE } from "./constants";
 
-const START_SPEED = 0.36
+export const START_SPEED = 0.36
 const ACC_RATE = 1.0036
-const SPEED_COLOR_DATA = {
-    0.36: 0x00ff00,
-    0.42: 0x11ff00,
-    0.48: 0x22ff00,
-    0.54: 0x33ff00,
-    0.60: 0x44ff00,
-    0.66: 0x55ff00,
-    0.72: 0x66ff00,
-    0.78: 0x77ff00,
-    0.84: 0x88ff00,
-    0.90: 0x99ff00,
-    0.96: 0xaaff00,
-    1.02: 0xbbff00,
-    1.08: 0xccff00,
-    1.14: 0xddff00,
-    1.20: 0xeeff00,
-    1.26: 0xffff00,
-    1.32: 0xffee00,
-    1.38: 0xffdd00,
-    1.44: 0xffcc00,
-    1.50: 0xffbb00,
-    1.56: 0xffaa00,
-    1.62: 0xff9900,
-    1.68: 0xff8800,
-    1.74: 0xff7700,
-    1.80: 0xff6600,
-    1.86: 0xff5500,
-    1.92: 0xff4400,
-    1.98: 0xff3300,
-    2.04: 0xff2200,
-    2.10: 0xff1100,
-    2.16: 0xff0000,
-}
+const SPEED_TAIL_RATE = 3
+const POWER_COLORS = [
+    {in: 0x000000, out: 0x000000}, // 0
+    {in: 0xffffff, out: 0x00ff00}, // 1
+    {in: 0xffff00, out: 0x00ff00}, // 2
+    {in: 0xffffff, out: 0xffff00}, // 3
+    {in: 0xffffff, out: 0xff0000}, // 4
+    {in: 0xffff00, out: 0xff0000}, // 5
+]
+
+// Минимальный уклон от горизонтали (в радианах)
+const MIN_HORIZONTAL_ANGLE = 6 * Math.PI / 180   // 6°
+// Границы мёртвых зон
+const RIGHT_DEAD_HIGH = MIN_HORIZONTAL_ANGLE      // от 0° до 6° (вправо)
+const RIGHT_DEAD_LOW = 2 * Math.PI - MIN_HORIZONTAL_ANGLE // от 354° до 360° (эквивалент -6°..0°)
+const LEFT_DEAD_LOW = Math.PI - MIN_HORIZONTAL_ANGLE     // от 174° до 180°
+const LEFT_DEAD_HIGH = Math.PI + MIN_HORIZONTAL_ANGLE    // от 180° до 186°
 
 export default class Ball extends Container {
-    constructor(x, y, borderInnerWidth, bricks, paddle, emitTrail, onBottomCollide, isBottomOn, power = 1) {
+    constructor(
+        x, y, borderInnerWidth, bricks, paddle, emitTrail, addSparks,
+        onBottomCollide, isBottomOn, startAngle = null
+    ) {
         super()
 
-        this.power = power
+        this.isFly = startAngle !== null
+        this.isAlive = true
 
         this.bricks = bricks
         this.paddle = paddle
         this.onBottomCollide = onBottomCollide
 
         this.emitTrail = emitTrail
-        this.trailSize = 1
+        this.trailSize = Math.floor(this.speed * SPEED_TAIL_RATE)
+
+        this.addSparks = addSparks
 
         this.body = new Sprite(images.ball_body)
         this.body.anchor.set(0.5)
@@ -59,12 +50,12 @@ export default class Ball extends Container {
 
         this.shine = new Sprite(images.ball_shine)
         this.shine.anchor.set(0.5)
-        this.shine.tint = 0x00ff00 // 0xff0000
+        this.shine.tint = POWER_COLORS[ playerPower ].out
         this.addChild(this.shine)
 
         this.lines = new Sprite(images.ball_lines)
         this.lines.anchor.set(0.5)
-        this.lines.tint = 0xffff00
+        this.lines.tint = POWER_COLORS[ playerPower ].in
         this.addChild(this.lines)
 
         this.position.set(x, y)
@@ -86,7 +77,7 @@ export default class Ball extends Container {
         this.collideBrickIndex = -1
         this.platformOffset = 0
 
-        this.direction = Math.PI * 0.5// Math.random() * Math.PI * 2
+        this.direction = startAngle ? startAngle : Math.PI * -0.5// Math.random() * Math.PI * 2
         this.dx = Math.cos(this.direction)
         this.dy = Math.sin(this.direction)
 
@@ -95,19 +86,27 @@ export default class Ball extends Container {
         tickerAdd(this)
     }
 
-    addSpeed() {
+    start() {
+        this.isFly = true
+    }
+
+    addPower() {
+        this.shine.tint = POWER_COLORS[ playerPower ].out
+        this.lines.tint = POWER_COLORS[ playerPower ].in
+    }
+
+    accelerate() {
         this.speed *= ACC_RATE
-        this.trailSize = Math.round((this.speed - 0.3) * 24)
-        
-        const speeds = Object.keys(SPEED_COLOR_DATA).map(Number)
-        let closestSpeed = speeds[0]
-        for (const s of speeds) {
-            if (Math.abs(s - this.speed) < Math.abs(closestSpeed - this.speed)) {
-                closestSpeed = s
-            }
-        }
-        this.shine.tint = SPEED_COLOR_DATA[closestSpeed]
-        
+        this.trailSize = Math.floor(this.speed * SPEED_TAIL_RATE)
+    }
+
+    addSpeed() {
+        this.speed = this.speed * 1.5
+        this.trailSize = Math.floor(this.speed * SPEED_TAIL_RATE)
+    }
+    resetSpeed() {
+        this.speed = START_SPEED
+        this.trailSize = Math.floor(this.speed * SPEED_TAIL_RATE)
     }
 
     setBottomBorder(isActive = false) {
@@ -235,7 +234,23 @@ export default class Ball extends Container {
         }
     }
 
-    tick(deltaMs) {
+    clampDirection() {
+        let angle = this.direction % (2 * Math.PI)
+        if (angle < 0) angle += 2 * Math.PI
+    
+        // Правая сторона
+        if (angle === 0 || (angle >= RIGHT_DEAD_LOW && angle < 2 * Math.PI)) angle = RIGHT_DEAD_LOW       // 354° (вверх)
+        else if (angle > 0 && angle < RIGHT_DEAD_HIGH) angle = RIGHT_DEAD_HIGH                             // 6°  (вниз)
+        // Левая сторона
+        else if (angle > LEFT_DEAD_LOW && angle < Math.PI) angle = LEFT_DEAD_LOW                           // 174° (вниз)
+        else if (angle >= Math.PI && angle < LEFT_DEAD_HIGH) angle = LEFT_DEAD_HIGH                        // 186° (вверх)
+    
+        this.direction = angle
+        this.dx = Math.cos(this.direction)
+        this.dy = Math.sin(this.direction)
+    }
+
+    fly(deltaMs) {
         const path = this.speed * deltaMs
         const destinationX = this.x + this.dx * path
         const destinationY = this.y + this.dy * path
@@ -248,14 +263,18 @@ export default class Ball extends Container {
             this.y = destinationY
         } else {
             // Обработка столкновения
-            this.addSpeed()
+            this.accelerate()
             
             this.x = this.collideX + this.collideOffsetX
             this.y = this.collideY + this.collideOffsetY
 
+            // добавляем искры
+            const sparksCount = Math.floor((this.speed * Math.random() * 6) + playerPower * 2)
+            this.addSparks({x: this.collideX, y: this.collideY, count: sparksCount, isGravity: true})
+
             // бьём блок, если попали
             if (this.collideBrickIndex > -1) {
-                this.bricks.children[this.collideBrickIndex].getHit(this.power)
+                this.bricks.children[this.collideBrickIndex].getHit(playerPower)
             }
 
             // проверка выхода за нижнюю грань
@@ -265,8 +284,9 @@ export default class Ball extends Container {
                 if (this.isBottomBorder) {
                     this.dy *= -1
                     this.direction = Math.atan2(this.dy, this.dx)
+                    this.clampDirection()
                 }
-                this.onBottomCollide()
+                this.onBottomCollide(this)
                 return
             }
 
@@ -288,12 +308,14 @@ export default class Ball extends Container {
                 }
             }
             this.direction = Math.atan2(this.dy, this.dx)
+            this.clampDirection()
         }
 
-        this.emitTrail(this.x, this.y, this.dx, this.dy, this.shine.tint, this.trailSize)
+        this.emitTrail(this.x, this.y, this.dx, this.dy, this.lines.tint, this.shine.tint, this.trailSize)
     }
 
-    kill() {
-        tickerRemove(this)
+    tick(deltaMs) {
+        if (this.isFly) this.fly(deltaMs)
+        else this.position.set(this.paddle.x, this.paddle.y - BALL_RADIUS)
     }
 }

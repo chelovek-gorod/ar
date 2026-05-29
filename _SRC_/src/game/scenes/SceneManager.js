@@ -88,6 +88,8 @@ export default class SceneManager {
     hideScreenBlocker() {
         this.blocker.visible = false
         sceneRemove(this.blocker)
+
+        if ('launchScene' in this.scenesQueue[0]) this.scenesQueue[0].launchScene()
     }
 
     add( scene ) {
