@@ -35,8 +35,6 @@ export default class LevelScene extends Container {
         this.bg = null
         this.gameContainer = null
 
-        this.isSceneReady = false
-
         // control
         this.isTouchDevice = getDeviceType() !== 'desktop'
         this.touchStartX = 0
@@ -112,10 +110,6 @@ export default class LevelScene extends Container {
         this.screenResize( getAppScreen() )
     }
 
-    launchScene() {
-        this.isSceneReady = true
-    }
-
     screenResize(screenData) {
         // set scene container in center of screen
         this.position.set( screenData.centerX, screenData.centerY )
@@ -156,13 +150,13 @@ export default class LevelScene extends Container {
 
     // mouse
     onPointerMoveMouse({global}) {
-        if (!this.isSceneReady || !this.gameContainer) return
+        if (!this.gameContainer) return
 
         const point = this.gameContainer.toLocal(global)
         this.gameContainer.paddle.setPointerX(point.x)
     }
     onPointerDownMouse() {
-        if (!this.isSceneReady || !this.gameContainer) return
+        if (!this.gameContainer) return
     
         const ball = this.gameContainer.balls.children[0]
         if (ball && !ball.isFly) ball.start()
@@ -170,7 +164,7 @@ export default class LevelScene extends Container {
 
     // touch
     onPointerMoveTouch({global}) {
-        if (!this.isSceneReady || !this.gameContainer || !this.isTouching) return
+        if (!this.gameContainer || !this.isTouching) return
     
         const point = this.gameContainer.toLocal(global)
         const paddle = this.gameContainer.paddle
@@ -178,7 +172,7 @@ export default class LevelScene extends Container {
     }
     
     onPointerDownTouch({global}) {
-        if (!this.isSceneReady || !this.gameContainer) return
+        if (!this.gameContainer) return
     
         const point = this.gameContainer.toLocal(global)
         const now = performance.now()
