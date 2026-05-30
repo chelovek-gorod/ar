@@ -1,9 +1,9 @@
 import { Container, Graphics, Sprite, Text } from 'pixi.js'
 import { atlases, images, music } from '../../../app/assets'
-import { EventHub, events, pauseGameplay } from '../../../app/events'
+import { EventHub, events } from '../../../app/events'
 import { setMusicList } from '../../../app/sound'
 import { getLanguage } from '../../localization'
-import { getAppScreen, tickerAdd, tickerRemove } from '../../../app/application'
+import { getAppScreen, getDeviceType, tickerAdd, tickerRemove } from '../../../app/application'
 import Popup, { POPUP_TYPE } from '../../popup/Popup'
 import { gameplayRunSDK, gameplayStopSDK } from '../../storage'
 import BackgroundImage from '../../BG/BackgroundImage'
@@ -34,6 +34,13 @@ export default class LevelScene extends Container {
         this.gameContainer = null
 
         this.isSceneReady = false
+
+        // control
+        this.isTouchDevice = getDeviceType() !== 'desktop'
+        this.pointerOffset = 0            // смещение для тач-управления
+        this.isTouching = false
+        this.lastTapTime = 0
+        this.lastTapPosition = {x:0, y:0}
 
         getLevelData( this.setLevelData.bind(this) )
 
@@ -88,8 +95,15 @@ export default class LevelScene extends Container {
 
         this.bg = new BackgroundImage(images["bg_" + levelData.bg_index], null, false)
         this.bg.eventMode = 'static'
-        this.bg.on('pointermove', this.onpointerMove, this)
-        this.bg.on('pointerdown', this.onpointerDown, this)
+        if (this.isTouchDevice) {
+            this.bg.on('pointermove', this.onPointerMoveTouch, this)
+            this.bg.on('pointerdown', this.onPointerDownTouch, this)
+            this.bg.on('pointerup', this.onPointerUpTouch, this)
+            this.bg.on('pointerupoutside', this.onPointerUpTouch, this)
+        } else {
+            this.bg.on('pointermove', this.onPointerMoveMouse, this)
+            this.bg.on('pointerdown', this.onPointerDownMouse, this)
+        }
         this.addChildAt(this.bg, 0)
 
         this.screenResize( getAppScreen() )
@@ -137,16 +151,62 @@ export default class LevelScene extends Container {
         this.currentLanguage = lang
     }
 
-    onpointerMove({global}) {
+    // mouse
+    onPointerMoveMouse({global}) {
         if (!this.isSceneReady || !this.gameContainer) return
 
         const point = this.gameContainer.toLocal(global)
-        this.gameContainer.paddle.setPointerX( point.x )
+        this.gameContainer.paddle.setPointerX(point.x)
+    }
+    onPointerDownMouse() {
+        if (!this.isSceneReady || !this.gameContainer) return
+    
+        const ball = this.gameContainer.balls.children[0]
+        if (ball && !ball.isFly) ball.start()
     }
 
-    onpointerDown() {
-        if (!this.isSceneReady || !this.gameContainer || !this.gameContainer.balls.children.length) return
-        this.gameContainer.balls.children[0].start()
+    // touch
+    onPointerMoveTouch({global}) {
+        if (!this.isSceneReady || !this.gameContainer || !this.isTouching) return
+    
+        const point = this.gameContainer.toLocal(global)
+        const paddle = this.gameContainer.paddle
+    
+        paddle.setPointerX(point.x + this.pointerOffset)
+    }
+    
+    onPointerDownTouch({global}) {
+        if (!this.isSceneReady || !this.gameContainer) return
+    
+        const point = this.gameContainer.toLocal(global)
+        const now = performance.now()
+        const dist = Math.hypot(point.x - this.lastTapPosition.x, point.y - this.lastTapPosition.y)
+
+        // Проверка на двойной тап (в радиусе 24px и 300 мс)
+        if (this.isTouching === false && now - this.lastTapTime < 300 && dist <= 24) {
+            // Двойной тап – мгновенно перемещаем платформу, не запускаем мяч
+            this.gameContainer.paddle.setPointerX(point.x)
+            this.lastTapTime = 0
+            this.isTouching = false
+            return
+        }
+
+        // Одиночный тап / начало drag'а
+        this.pointerOffset = this.gameContainer.paddle.x - point.x
+        this.lastTapTime = now
+        this.lastTapPosition = { x: point.x, y: point.y }
+        this.isTouching = true
+    }
+    
+    onPointerUpTouch() {
+        if (!this.isTouchDevice) return
+    
+        // Отпускание пальца
+        this.isTouching = false
+    
+        // Запуск мяча, если он ещё не летит
+        const ball = this.gameContainer?.balls?.children[0]
+        if (ball && !ball.isFly) ball.start()
     }
 
     tick(deltaMs) {
@@ -159,8 +219,15 @@ export default class LevelScene extends Container {
         tickerRemove(this)
 
         if (this.bg) {
-            this.bg.off('pointermove', this.onpointerMove, this)
-            this.bg.off('pointerdown', this.onpointerDown, this)
+            if (this.isTouchDevice) {
+                this.bg.off('pointermove', this.onPointerMoveTouch, this)
+                this.bg.off('pointerdown', this.onPointerDownTouch, this)
+                this.bg.off('pointerup', this.onPointerUpTouch, this)
+                this.bg.off('pointerupoutside', this.onPointerUpTouch, this)
+            } else {
+                this.bg.off('pointermove', this.onPointerMoveMouse, this)
+                this.bg.off('pointerdown', this.onPointerDownMouse, this)
+            }
         }
 
         if (this.handlerKeyboard) {

@@ -137,11 +137,11 @@ export default class LoadScene extends Container {
     }
 
     updateTitleTransform() {
-        const title_w = 1536
-        const title_h = 1024
+        const title_w = 1536 + 24
+        const title_h = 1024 + 196
         const scale_x = this.screenData.width / title_w
         const scale_y = this.screenData.height / title_h
-        this.title.scale.set( Math.min(1, scale_x * 0.9, scale_y * 0.9) )
+        this.title.scale.set( Math.min(1, scale_x, scale_y) )
         this.title.position.set(0, -this.screenData.height * 0.125)
     }
 

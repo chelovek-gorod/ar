@@ -1,5 +1,5 @@
 import { Assets } from "pixi.js"
-import { EventHub, events, getNextLevel } from "../app/events"
+import { EventHub, events } from "../app/events"
 import { setLeaderboardScore, updateStoredData } from "../game/storage"
 import { createEnum } from "../utils/functions"
 

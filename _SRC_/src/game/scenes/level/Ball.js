@@ -1,13 +1,13 @@
 import { Container, Sprite } from "pixi.js";
 import { tickerAdd, tickerRemove } from "../../../app/application";
 import { images } from "../../../app/assets";
-import { getLinesIntersectionPoint, moveSprite } from "../../../utils/functions";
+import { getLinesIntersectionPoint } from "../../../utils/functions";
 import { playerPower } from "../../state";
 import { BALL_RADIUS, BORDER_HALF_SIZE } from "./constants";
 
 export const START_SPEED = 0.36
-const ACC_RATE = 1.0036
-const SPEED_TAIL_RATE = 3
+const ACC_RATE = 1.006
+const SPEED_TAIL_RATE = 12
 const POWER_COLORS = [
     {in: 0x000000, out: 0x000000}, // 0
     {in: 0xffffff, out: 0x00ff00}, // 1
@@ -39,8 +39,10 @@ export default class Ball extends Container {
         this.paddle = paddle
         this.onBottomCollide = onBottomCollide
 
+        this.speed = START_SPEED
+
         this.emitTrail = emitTrail
-        this.trailSize = Math.floor(this.speed * SPEED_TAIL_RATE)
+        this.trailSize = Math.floor(this.speed * this.speed * SPEED_TAIL_RATE)
 
         this.addSparks = addSparks
 
@@ -81,8 +83,6 @@ export default class Ball extends Container {
         this.dx = Math.cos(this.direction)
         this.dy = Math.sin(this.direction)
 
-        this.speed = START_SPEED
-
         tickerAdd(this)
     }
 
@@ -97,16 +97,16 @@ export default class Ball extends Container {
 
     accelerate() {
         this.speed *= ACC_RATE
-        this.trailSize = Math.floor(this.speed * SPEED_TAIL_RATE)
+        this.trailSize = Math.floor(this.speed * this.speed * SPEED_TAIL_RATE)
     }
 
     addSpeed() {
         this.speed = this.speed * 1.5
-        this.trailSize = Math.floor(this.speed * SPEED_TAIL_RATE)
+        this.trailSize = Math.floor(this.speed * this.speed * SPEED_TAIL_RATE)
     }
     resetSpeed() {
         this.speed = START_SPEED
-        this.trailSize = Math.floor(this.speed * SPEED_TAIL_RATE)
+        this.trailSize = Math.floor(this.speed * this.speed * SPEED_TAIL_RATE)
     }
 
     setBottomBorder(isActive = false) {
@@ -173,7 +173,8 @@ export default class Ball extends Container {
         if (this.dy > 0) {
             const p = getLinesIntersectionPoint(
                 this.x, this.y, destinationX, destinationY,
-                this.paddle.left, this.paddle.top, this.paddle.right, this.paddle.top
+                this.paddle.left, this.paddle.top,
+                this.paddle.right, this.paddle.top
             )
             if (p) {
                 this.setCollideData(p, 0, -1, -2)
@@ -186,14 +187,14 @@ export default class Ball extends Container {
             const p = getLinesIntersectionPoint(
                 this.x, this.y, destinationX, destinationY,
                 this.paddle.left, this.paddle.top,
-                this.paddle.left, this.paddle.y + this.paddle.height * 0.8
+                this.paddle.left, this.paddle.bottom
             )
             if (p) this.setCollideData(p, -1, 0, -3)
         } else if (this.dx < 0) {
             const p = getLinesIntersectionPoint(
                 this.x, this.y, destinationX, destinationY,
                 this.paddle.right, this.paddle.top,
-                this.paddle.right, this.paddle.y + this.paddle.height * 0.8
+                this.paddle.right, this.paddle.bottom
             )
             if (p) this.setCollideData(p, 1, 0, -4)
         }

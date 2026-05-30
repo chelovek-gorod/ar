@@ -1,5 +1,5 @@
 const MOCK_LANGUAGE = 'ru'
-const MOCK_STORAGE_KEY = 'test-0'
+const MOCK_STORAGE_KEY = 'test-01'
 
 export const MOCK_LEADERBOARD_NAME = 'crashDashLB';
 const MOCK_FETCH_DELAY = 1500; // имитация задержки сети

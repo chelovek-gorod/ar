@@ -250,7 +250,7 @@ function loadBgMusic() {
             musicHowl = null
             return
         }
-        musicPlay()
+        if (state.isMusicOn) musicPlay()
     })
 
     musicHowl.on('loaderror', () => {

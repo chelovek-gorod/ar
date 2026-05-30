@@ -14,6 +14,8 @@ export const events = createEnum([
 
     'updateLanguage',
 
+    'getTopResults',
+
     'dropLoseBonus',
     'collectBonus',
 ])
@@ -35,59 +37,13 @@ export function startScene( sceneName ) {
     EventHub.emit( events.startScene, sceneName )
 }
 
+export function getTopResults( ) {
+    EventHub.emit( events.getTopResults )
+}
+
+
 export function updateLanguage( currentLanguageCode ) {
     EventHub.emit( events.updateLanguage, currentLanguageCode )
-}
-
-export function addSmoke( data ) {
-    EventHub.emit( events.addSmoke, data )
-}
-export function addExplosion( data ) {
-    EventHub.emit( events.addExplosion, data )
-}
-export function addSparks(data) {
-    EventHub.emit( events.addSparks, data )
-}
-export function addStones( data ) {
-    EventHub.emit( events.addStones, data )
-}
-
-export function addScore( data ) {
-    EventHub.emit( events.addScore, data )
-}
-export function resetCombo() {
-    EventHub.emit( events.resetCombo )
-}
-export function slowDown() {
-    EventHub.emit( events.slowDown )
-}
-export function removePlyerSave() {
-    EventHub.emit( events.removePlyerSave )
-}
-export function getNextLevel() {
-    EventHub.emit( events.getNextLevel )
-}
-
-export function pauseGameplay() {
-    EventHub.emit( events.pauseGameplay )
-}
-export function resumeGameplay() {
-    EventHub.emit( events.resumeGameplay )
-}
-
-export function updateTopResults() {
-    EventHub.emit( events.updateTopResults )
-}
-export function getTopResults(data) {
-    EventHub.emit( events.getTopResults, data )
-}
-
-export function launchFirework(point) {
-    EventHub.emit( events.launchFirework, point )
-}
-
-export function freeSpinPopupClosed() {
-    EventHub.emit( events.freeSpinPopupClosed )
 }
 
 export function dropLoseBonus( data ) {

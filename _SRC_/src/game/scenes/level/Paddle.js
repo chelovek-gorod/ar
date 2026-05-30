@@ -1,10 +1,11 @@
 import { Sprite } from "pixi.js";
 import { tickerAdd, tickerRemove } from "../../../app/application";
 import { images } from "../../../app/assets";
-import { BORDER_HALF_SIZE } from "./constants";
+import { BALL_RADIUS, BORDER_HALF_SIZE } from "./constants";
 
 const LOSE_CONTROL_TIMEOUT = 6000
 const LOSE_CONTROL_SPEED = 0.36
+const SIDE_OFFSET = BALL_RADIUS * 0.5
 
 export default class Paddle extends Sprite {
     constructor(size, x, y, borderInnerWidth) {
@@ -20,7 +21,12 @@ export default class Paddle extends Sprite {
         // add if get negative bonus
         this.isAutoMove = false 
         this.autoMoveTimeout = 0 
-        this.isAutoMoveLeft = false 
+        this.isAutoMoveLeft = false
+
+        // ball bounds
+        this.top = this.y - BALL_RADIUS
+        this.bottom = this.y + BALL_RADIUS
+        this.offset = this.width * 0.5 + BALL_RADIUS * 0.5
     }
 
     changeSize(step) {
@@ -29,6 +35,8 @@ export default class Paddle extends Sprite {
 
         this.minX = BORDER_HALF_SIZE * 2 + this.width * 0.5
         this.maxX = this.minX + this.borderInnerWidth - this.width
+
+        this.offset = this.width * 0.5 + BALL_RADIUS * 0.5
 
         this.x = Math.min(this.maxX,  Math.max(this.x, this.minX))
     }
@@ -47,9 +55,8 @@ export default class Paddle extends Sprite {
         tickerAdd(this)
     }
 
-    get left() { return this.x - this.width * 0.5 }
-    get right() { return this.x + this.width * 0.5 }
-    get top() { return this.y - 24 }
+    get left() { return this.x - this.offset }
+    get right() { return this.x + this.offset }
 
     tick(deltaMs) {
         this.autoMoveTimeout -= deltaMs

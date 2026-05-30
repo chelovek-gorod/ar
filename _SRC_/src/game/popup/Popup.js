@@ -1,5 +1,5 @@
 import { Container, Sprite, Text } from "pixi.js"
-import { EventHub, events, freeSpinPopupClosed, resumeGameplay } from "../../app/events"
+import { EventHub, events /*freeSpinPopupClosed,*/ /*resumeGameplay*/ } from "../../app/events"
 import Button from "../UI/Button"
 import TapIcon from "../UI/TapIcon"
 import { getAvailableLanguages, getLanguage, getLanguageName, setLanguage } from "../localization"
@@ -142,8 +142,8 @@ export default class Popup extends Container {
 
         if (this.showAdButton) this.showAdButton = null
 
-        if (this.type === POPUP_TYPE.PAUSE) resumeGameplay()
-        if (this.type === POPUP_TYPE.FREE_SPIN) freeSpinPopupClosed()
+        // if (this.type === POPUP_TYPE.PAUSE) resumeGameplay()
+        // if (this.type === POPUP_TYPE.FREE_SPIN) freeSpinPopupClosed()
 
         this.visible = false
         this.state = POPUP_STATE.CLOSED
