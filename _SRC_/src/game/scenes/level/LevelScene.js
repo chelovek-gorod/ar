@@ -21,7 +21,7 @@ function getMusic() {
     return music
 }
 
-const TOUCH_RATE = 1.2
+const TOUCH_RATE = 1.36
 
 export default class LevelScene extends Container {
     constructor() {
