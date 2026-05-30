@@ -21,6 +21,8 @@ function getMusic() {
     return music
 }
 
+const TOUCH_RATE = 1.2
+
 export default class LevelScene extends Container {
     constructor() {
         super()
@@ -37,7 +39,8 @@ export default class LevelScene extends Container {
 
         // control
         this.isTouchDevice = getDeviceType() !== 'desktop'
-        this.pointerOffset = 0            // смещение для тач-управления
+        this.touchStartX = 0
+        this.paddleStartX = 0
         this.isTouching = false
         this.lastTapTime = 0
         this.lastTapPosition = {x:0, y:0}
@@ -171,8 +174,7 @@ export default class LevelScene extends Container {
     
         const point = this.gameContainer.toLocal(global)
         const paddle = this.gameContainer.paddle
-    
-        paddle.setPointerX(point.x + this.pointerOffset)
+        paddle.setPointerX(this.paddleStartX + (point.x - this.touchStartX) * TOUCH_RATE)
     }
     
     onPointerDownTouch({global}) {
@@ -187,12 +189,15 @@ export default class LevelScene extends Container {
             // Двойной тап – мгновенно перемещаем платформу, не запускаем мяч
             this.gameContainer.paddle.setPointerX(point.x)
             this.lastTapTime = 0
-            this.isTouching = false
+            this.touchStartX = point.x
+            this.paddleStartX = point.x
+            this.isTouching = true
             return
         }
 
         // Одиночный тап / начало drag'а
-        this.pointerOffset = this.gameContainer.paddle.x - point.x
+        this.touchStartX = point.x
+        this.paddleStartX = this.gameContainer.paddle.x
         this.lastTapTime = now
         this.lastTapPosition = { x: point.x, y: point.y }
         this.isTouching = true
